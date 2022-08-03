@@ -9,16 +9,16 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.hash_state import hash_init, hash_update 
 from starkware.cairo.common.bitwise import bitwise_and, bitwise_xor
 
-
-## Delete inside
 struct Square:    
+    member PLACEHOLDER: felt
 end
 
 struct Player:    
+    member PLACEHOLDER: felt
 end
 
-## TODO test foir creating structs
 struct Game:        
+    member PLACEHOLDER: felt
 end
 
 @storage_var
