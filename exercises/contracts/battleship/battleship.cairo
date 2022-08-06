@@ -10,15 +10,23 @@ from starkware.cairo.common.hash_state import hash_init, hash_update
 from starkware.cairo.common.bitwise import bitwise_and, bitwise_xor
 
 struct Square:    
-    member PLACEHOLDER: felt
+    member square_commit: felt
+    member square_reveal: felt
+    member shot: felt
 end
 
 struct Player:    
-    member PLACEHOLDER: felt
+    member address: felt
+    points: felt
+    revealed: felt
 end
 
 struct Game:        
-    member PLACEHOLDER: felt
+    member player1: Player
+    member player2: Player
+    member next_player: felt
+    member last_move: (felt, felt)
+    member winner: felt
 end
 
 @storage_var
@@ -50,6 +58,7 @@ end
 ## Provide two addresses
 @external
 func set_up_game{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(player1 : felt, player2 : felt):
+    let game = 
     return ()
 end
 
