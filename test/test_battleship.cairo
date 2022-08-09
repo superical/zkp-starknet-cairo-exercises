@@ -323,11 +323,19 @@ func test_bombard_move2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
         x = 0, 
         y = 0
     )
+
+    %{
+        print("here 1")
+    %}
             
     ## Start move 1 as player1
     %{stop_prank_callable = start_prank(ids.Player_1)%}   
     bombard(0, 0, 0, 666)
     %{ stop_prank_callable() %}      
+
+     %{
+        print("here 2")
+    %}
 
     # ## Reverts if player1 tries playing again
     # %{stop_prank_callable = start_prank(ids.Player_1)%}   
@@ -335,21 +343,37 @@ func test_bombard_move2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     # bombard(0, 4, 0, 0)
     # %{ stop_prank_callable() %}   
 
+     %{
+        print("here 3")
+    %}
+
     # ## Reverts with wrong hash
     # %{stop_prank_callable = start_prank(ids.Player_2)%} 
     # %{ expect_revert() %}
     # bombard(0, 1, 0, 664)
     # %{ stop_prank_callable() %}   
 
+     %{
+        print("here 4")
+    %}
+
     ## Move 2 as player2
     %{stop_prank_callable = start_prank(ids.Player_2)%}   
     bombard(0, 1, 0, 3243241)
     %{ stop_prank_callable() %}          
 
+ %{
+        print("here 5")
+    %}
+
     ## Move 3 as player1
     %{stop_prank_callable = start_prank(ids.Player_1)%}   
     bombard(0, 2, 0, 6632426)
     %{ stop_prank_callable() %}  
+
+ %{
+        print("here 6")
+    %}
 
     ## Retrieve scores
     let (game) = games.read(0)
