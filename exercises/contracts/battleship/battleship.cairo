@@ -125,6 +125,9 @@ func bombard{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, 
         end
         let (target_square) = grid.read(game_idx, caller, x, y)
         let (new_game) = _update_game(game_val, caller, FALSE, x, y)
+        let new_target_square = Square(square_commit=target_square.square_commit, square_reveal=0, shot=TRUE)
+
+        grid.write(game_idx, caller, x, y, new_target_square)
         games.write(game_idx, new_game)
 
         return ()
@@ -134,12 +137,16 @@ func bombard{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, 
         end
 
         let (previous_player) = _get_previous_player(game_val, caller)
+        let (target_square) = grid.read(game_idx, caller, x, y)
         let (last_move_square) = grid.read(game_idx, previous_player, game_val.last_move[0], game_val.last_move[1])
 
         let (is_hit) = check_hit(last_move_square.square_commit, square_reveal)
         let (new_game) = _update_game(game_val, caller, is_hit, x, y)
-        tempvar new_last_move_square = Square(square_commit=last_move_square.square_commit, square_reveal=square_reveal, shot=TRUE)
+        
+        let new_target_square = Square(square_commit=target_square.square_commit, square_reveal=0, shot=TRUE)
+        let new_last_move_square = Square(square_commit=last_move_square.square_commit, square_reveal=square_reveal, shot=last_move_square.shot)
 
+        grid.write(game_idx, caller, x, y, new_target_square)
         grid.write(game_idx, previous_player, game_val.last_move[0], game_val.last_move[1], new_last_move_square)
         games.write(game_idx, new_game)
 
