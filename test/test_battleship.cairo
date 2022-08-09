@@ -244,6 +244,208 @@ func test_bombard_move1{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
 end
 
 @external
+func test_bombard_move2_revert_on_duplicate_move{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}():    
+
+    alloc_locals
+
+    ## Set-up a game
+    set_up_game(player1 = Player_1, player2 = Player_2)    
+
+    ## Hash a number
+    let (hashed_1) = hash_numb(666)
+    let (hashed_2) = hash_numb(3243241)
+    let (hashed_3) = hash_numb(6632426)
+    let (hashed_4) = hash_numb(32320)
+
+    %{
+        from starkware.cairo.common.hash_state import compute_hash_on_elements
+        hash = compute_hash_on_elements([666])
+        print(f"hash python: ", hash)
+        print(f"hash cairo: ", ids.hashed_1)
+    %}  
+
+    let (local array : felt*) = alloc()
+    assert array[0] = hashed_1
+    assert array[1] = hashed_2
+    assert array[2] = hashed_3
+    assert array[3] = hashed_4    
+
+    ## Load hashes as player 1
+    load_hashes(        
+        idx = 0, 
+        game_idx = 0, 
+        hashes_len = 4, 
+        hashes = array, 
+        player = Player_1, 
+        x = 0, 
+        y = 0
+    )
+
+    ## Load hashes as player 2
+    load_hashes(        
+        idx = 0, 
+        game_idx = 0, 
+        hashes_len = 4, 
+        hashes = array, 
+        player = Player_2, 
+        x = 0, 
+        y = 0
+    )
+            
+    ## Start move 1 as player1
+    %{stop_prank_callable = start_prank(ids.Player_1)%}   
+    bombard(0, 0, 0, 0)
+    %{ stop_prank_callable() %}      
+
+    ## Reverts if player1 tries playing again
+    %{ expect_revert() %}
+    bombard(0, 4, 0, 0)
+    %{ stop_prank_callable() %}   
+    
+    return()
+end
+
+@external
+func test_bombard_move2_revert_on_wrong_hash{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}():    
+
+    alloc_locals
+
+    ## Set-up a game
+    set_up_game(player1 = Player_1, player2 = Player_2)    
+
+    ## Hash a number
+    let (hashed_1) = hash_numb(666)
+    let (hashed_2) = hash_numb(3243241)
+    let (hashed_3) = hash_numb(6632426)
+    let (hashed_4) = hash_numb(32320)
+
+    %{
+        from starkware.cairo.common.hash_state import compute_hash_on_elements
+        hash = compute_hash_on_elements([666])
+        print(f"hash python: ", hash)
+        print(f"hash cairo: ", ids.hashed_1)
+    %}  
+
+    let (local array : felt*) = alloc()
+    assert array[0] = hashed_1
+    assert array[1] = hashed_2
+    assert array[2] = hashed_3
+    assert array[3] = hashed_4    
+
+    ## Load hashes as player 1
+    load_hashes(        
+        idx = 0, 
+        game_idx = 0, 
+        hashes_len = 4, 
+        hashes = array, 
+        player = Player_1, 
+        x = 0, 
+        y = 0
+    )
+
+    ## Load hashes as player 2
+    load_hashes(        
+        idx = 0, 
+        game_idx = 0, 
+        hashes_len = 4, 
+        hashes = array, 
+        player = Player_2, 
+        x = 0, 
+        y = 0
+    )
+            
+    ## Start move 1 as player1
+    %{stop_prank_callable = start_prank(ids.Player_1)%}   
+    bombard(0, 0, 0, 0)
+    %{ stop_prank_callable() %}       
+
+    ## Reverts with wrong hash
+    %{stop_prank_callable = start_prank(ids.Player_2)%} 
+    %{ expect_revert() %}
+    bombard(0, 1, 0, 664)
+    %{ stop_prank_callable() %}   
+    
+    return()
+end
+
+@external
+func test_bombard_move2_players_points{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}():    
+
+    alloc_locals
+
+    ## Set-up a game
+    set_up_game(player1 = Player_1, player2 = Player_2)    
+
+    ## Hash a number
+    let (hashed_1) = hash_numb(666)
+    let (hashed_2) = hash_numb(3243241)
+    let (hashed_3) = hash_numb(6632426)
+    let (hashed_4) = hash_numb(32320)
+
+    %{
+        from starkware.cairo.common.hash_state import compute_hash_on_elements
+        hash = compute_hash_on_elements([666])
+        print(f"hash python: ", hash)
+        print(f"hash cairo: ", ids.hashed_1)
+    %}  
+
+    let (local array : felt*) = alloc()
+    assert array[0] = hashed_1
+    assert array[1] = hashed_2
+    assert array[2] = hashed_3
+    assert array[3] = hashed_4    
+
+    ## Load hashes as player 1
+    load_hashes(        
+        idx = 0, 
+        game_idx = 0, 
+        hashes_len = 4, 
+        hashes = array, 
+        player = Player_1, 
+        x = 0, 
+        y = 0
+    )
+
+    ## Load hashes as player 2
+    load_hashes(        
+        idx = 0, 
+        game_idx = 0, 
+        hashes_len = 4, 
+        hashes = array, 
+        player = Player_2, 
+        x = 0, 
+        y = 0
+    )
+            
+    ## Start move 1 as player1
+    %{stop_prank_callable = start_prank(ids.Player_1)%}   
+    bombard(0, 0, 0, 0)
+    %{ stop_prank_callable() %}      
+
+    ## Move 2 as player2
+    %{stop_prank_callable = start_prank(ids.Player_2)%}   
+    bombard(0, 1, 0, 666)
+    %{ stop_prank_callable() %}          
+
+    ## Move 3 as player1
+    %{stop_prank_callable = start_prank(ids.Player_1)%}   
+    bombard(0, 2, 0, 3243241)
+    %{ stop_prank_callable() %}  
+
+    ## Retrieve scores
+    let (game) = games.read(0)
+
+    ## Assert player 1 has 0
+    assert 0 = game.player1.points
+
+    ## Assert player 2 has 1
+    assert 1 = game.player2.points
+    
+    return()
+end
+
+# Note: This is the original test of test_bombard_move2
+@external
 func test_bombard_move2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}():    
 
     alloc_locals
