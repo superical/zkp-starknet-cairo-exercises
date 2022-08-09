@@ -111,31 +111,48 @@ end
 func bombard{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(game_idx : felt, x : felt, y : felt, square_reveal : felt):
     alloc_locals
 
-    let (local game_val) = games.read(game_idx)
+    let (game_val) = games.read(game_idx)
     let (caller) = get_caller_address()
     let (is_caller_player) = check_caller(caller, game_val)
 
-    let (local target_square) = grid.read(game_idx, caller, x, y)
+    # If first move, any player can reveal his square
+    # If non-first move, the next player reveals the square from the previous player's last move
+    # Check if the square has been hit
 
     if game_val.next_player == 0:
         with_attr error_message("Caller is not a player"):
             assert is_caller_player = TRUE
         end
+        let (target_square) = grid.read(game_idx, caller, x, y)
+        let (new_game) = _update_game(game_val, caller, FALSE, x, y)
+        games.write(game_idx, new_game)
+
+        return ()
     else:
         with_attr error_message("Caller is not next player"):
             assert caller = game_val.next_player
         end
+
+        let (previous_player) = _get_previous_player(game_val, caller)
+        let (last_move_square) = grid.read(game_idx, previous_player, game_val.last_move[0], game_val.last_move[1])
+
+        let (is_hit) = check_hit(last_move_square.square_commit, square_reveal)
+        let (new_game) = _update_game(game_val, caller, is_hit, x, y)
+        tempvar new_last_move_square = Square(square_commit=last_move_square.square_commit, square_reveal=square_reveal, shot=TRUE)
+
+        grid.write(game_idx, previous_player, game_val.last_move[0], game_val.last_move[1], new_last_move_square)
+        games.write(game_idx, new_game)
+
+        return ()
     end
+end
 
-    let (is_hit) = check_hit(target_square.square_commit, square_reveal)
-    let (new_game) = _update_game(game_val, caller, is_hit, x, y)
-
-    tempvar new_target_square = Square(square_commit=target_square.square_commit, square_reveal=square_reveal, shot=TRUE)
-
-    grid.write(game_idx, caller, x, y, new_target_square)
-    games.write(game_idx, new_game)
-
-    return ()
+func _get_previous_player{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(game : Game, caller : felt) -> (previous_player : felt):
+    if caller == game.player1.address:
+        return (game.player2.address)
+    else:
+        return (game.player1.address)
+    end
 end
 
 func _update_game{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(game: Game, caller: felt, is_hit: felt, x: felt, y: felt) -> (game: Game):
@@ -174,21 +191,21 @@ end
 func _compute_new_game_state{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(game: Game, caller: felt, is_hit: felt) -> (player1_points: felt, player2_points: felt, next_player: felt, winner: felt):    
     if is_hit == TRUE:
         if caller == game.player1.address:
-            tempvar new_points = game.player1.points + 1
-            if new_points == 4:
-                tempvar winner = game.player1.address
-            else:
-                tempvar winner = 0
-            end
-            return (player1_points=new_points, player2_points=game.player2.points, next_player=game.player2.address, winner=winner)
-        else:
             tempvar new_points = game.player2.points + 1
             if new_points == 4:
                 tempvar winner = game.player2.address
             else:
                 tempvar winner = 0
             end
-            return (player1_points=game.player1.points, player2_points=new_points, next_player=game.player1.address, winner=winner)
+            return (player1_points=game.player1.points, player2_points=new_points, next_player=game.player2.address, winner=winner)
+        else:
+            tempvar new_points = game.player1.points + 1
+            if new_points == 4:
+                tempvar winner = game.player1.address
+            else:
+                tempvar winner = 0
+            end
+            return (player1_points=new_points, player2_points=game.player2.points, next_player=game.player1.address, winner=winner)
         end
     else:
         if caller == game.player1.address:
