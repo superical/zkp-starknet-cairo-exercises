@@ -143,15 +143,9 @@ Tests will run against any implementations.
 
 To run the test file, invoke:
 
-`protostar test test/test_erc20.cairo`
-
-Since nothing is done, hopefully, all tests will fail.
-
 You should modify **ONLY** the file `erc20.cairo` in `exercises/contracts/`.
 
 If a feature is complete, run again to see the test output:
-
-`protostar test test/test_erc20.cairo`
 
 Functions that need to be implemented are specified in the `@contract_interface` in `test_erc20.cairo`.
 
