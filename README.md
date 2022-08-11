@@ -201,16 +201,6 @@ Once more some additional features are to be added.
 
 Tests will run against any implementations.
 
-To run the test file, invoke:
-
-`protostar test test/test_erc721.cairo`
-
-You should modify **ONLY** the file `erc721.cairo` in `exercises/contracts/`.
-
-If a feature is complete, run again to see test output:
-
-`protostar test test/test_erc721.cairo`
-
 #### Mint index
 
 Change minting procedure so that rathar than passing an ID, instead it fetches one from a storage variable named `counter()`. After minting current index of `counter()` is changed to be + 1.
