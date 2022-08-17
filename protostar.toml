@@ -1,6 +1,9 @@
 ["protostar.config"]
 protostar_version = "0.2.5"
 
+["protostar.test"]
+disable-hint-validation = true
+
 ["protostar.project"]
 libs_path = "exercises"
 
