@@ -1,11 +1,14 @@
 ["protostar.config"]
-protostar_version = "0.2.5"
+protostar_version = "0.3.0"
 
 ["protostar.test"]
 disable-hint-validation = true
 
 ["protostar.project"]
-libs_path = "exercises"
+libs_path = "lib"
+
+["protostar.shared_command_configs"]
+cairo_path = ["./lib/cairo_contracts/src"]
 
 ["protostar.contracts"]
 main = [
