@@ -54,7 +54,7 @@ namespace IERC721:
     func getOriginalOwner(tokenId: Uint256) -> (account: felt):
     end
 
-    func setErc20_pay(address: felt):
+    func setErc20_pay(address: felt, price: Uint256):
     end
 
     func mintBuy():
