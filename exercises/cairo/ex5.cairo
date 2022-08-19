@@ -1,5 +1,3 @@
-## I AM NOT DONE
-
 # %builtins range_check
 
 from starkware.cairo.common.math import abs_value
