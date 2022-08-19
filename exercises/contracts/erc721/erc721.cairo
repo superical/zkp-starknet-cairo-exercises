@@ -14,6 +14,10 @@ from openzeppelin.token.erc721.library import ERC721
 func counter() -> (counter: Uint256):
 end
 
+@storage_var
+func og_owner(tokenId: Uint256) -> (account: felt):
+end
+
 #
 # Constructor
 #
@@ -137,6 +141,16 @@ func getCounter{
     return (count)
 end
 
+@view
+func getOriginalOwner{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(tokenId: Uint256) -> (account: felt):
+    let (account) = og_owner.read(tokenId)
+    return (account)
+end
+
 #
 # Externals
 #
@@ -203,6 +217,8 @@ func mint{
 
     ## Add original hash
     ERC721._mint(to, tokenId)
+
+    og_owner.write(tokenId, to)
 
     let (new_counter_low, _) = uint256_add(tokenId, Uint256(1, 0))
     counter.write(new_counter_low)

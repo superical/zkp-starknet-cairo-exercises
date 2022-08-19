@@ -51,7 +51,7 @@ namespace IERC721:
     func getCounter() -> (count: Uint256):
     end
 
-    func getOriginalOwner(tokenId: Uint256) -> (originalOwner: felt):
+    func getOriginalOwner(tokenId: Uint256) -> (account: felt):
     end
 
     func setErc20_pay(address: felt):
