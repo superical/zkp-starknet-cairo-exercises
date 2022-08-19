@@ -122,6 +122,10 @@ It will check whether the caller is one of the players and whether it is their m
 
 Then it will check whether this is the very first move and whether it needs to process the `square_reveal` argument, if it is not first move it will assert that is the right player and call `check_hit`. If the player has accumulated four points, they are declared a winner.
 
+Square will be loaded twice using `grid.read()`:
+- to confirm provided reveal matches square bombed by the opposing player in the prior move (using x/y cords from `game.last_move`)
+- to set square marked as hit by the current caller (using x/y cords provided as arguments)
+
 If hit has been made, score for the previous player will be incremented.
 
 The next player will be set to the opposite player depending on what current caller is.
@@ -129,9 +133,9 @@ The next player will be set to the opposite player depending on what current cal
 The game struct under this particular game index will be updated to reflect changes in:
 
 - player points
-- next player
+- next player address
 - potential winner
-- last move
+- last bombed squate 
 
 ## ERC20 contract
 
