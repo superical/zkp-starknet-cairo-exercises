@@ -26,4 +26,10 @@ namespace IErc20:
 
     func get_admin() -> (admin_address: felt):
     end
+
+    func transferFrom(sender: felt, recipient: felt, amount: Uint256):
+    end
+
+    func approve(spender: felt, amount: Uint256):
+    end
 end

@@ -28,7 +28,10 @@ from exercises.contracts.erc20.ERC20_base import (
 
     ERC20_initializer,       
     ERC20_transfer,    
-    ERC20_burn
+    ERC20_burn,
+
+    ERC20_transferFrom,
+    ERC20_approve
 )
 
 @storage_var
@@ -154,6 +157,30 @@ func transfer{
 
     ERC20_transfer(recipient, amount)    
     return (1)
+end
+
+@external
+func transferFrom{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        sender: felt, 
+        recipient: felt, 
+        amount: Uint256
+    ):
+    ERC20_transferFrom(sender, recipient, amount)   
+    return ()
+end
+
+@external
+func approve{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(spender: felt, amount: Uint256):
+    ERC20_approve(spender, amount)    
+    return ()
 end
 
 @external
