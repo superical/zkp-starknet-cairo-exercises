@@ -5,6 +5,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256, uint256_le, uint256_unsigned_div_rem, uint256_sub, uint256_mul
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.math import unsigned_div_rem, assert_le_felt
+from starkware.cairo.common.bool import TRUE, FALSE
 
 from starkware.cairo.common.math import (
     assert_not_zero,
@@ -32,6 +33,10 @@ from exercises.contracts.erc20.ERC20_base import (
 
 @storage_var
 func admin() -> (admin: felt):
+end
+
+@storage_var
+func whitelist(account_id: felt) -> (res: felt):
 end
 
 #
@@ -195,4 +200,50 @@ func burn{
     ERC20_burn(caller, remaining)
 
     return (1)
+end
+
+@external
+func request_whitelist{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (success: felt):
+    alloc_locals
+    
+    let (local caller) = get_caller_address()
+
+    let (is_whitelisted) = check_whitelist(caller)
+    assert is_whitelisted = FALSE
+
+    whitelist.write(caller, TRUE)
+
+    return (TRUE)
+end
+
+@external
+func check_whitelist{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(account: felt) -> (is_whitelisted: felt):
+    let (is_whitelisted) = whitelist.read(account)
+
+    return (is_whitelisted)
+end
+
+@external
+func exclusive_faucet{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(amount:Uint256) -> (success: felt):
+    let (caller) = get_caller_address()
+    let (is_whitelisted) = check_whitelist(caller)
+
+    with_attr error_message("Not whitelisted"):
+        assert is_whitelisted = TRUE
+    end
+
+    ERC20_mint(caller, amount)
+    return (TRUE)
 end
