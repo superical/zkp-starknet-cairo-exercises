@@ -226,15 +226,7 @@ func mint{
     }(to: felt):
     Ownable.assert_only_owner()
 
-    let (tokenId: Uint256) = counter.read()
-
-    ## Add original hash
-    ERC721._mint(to, tokenId)
-
-    og_owner.write(tokenId, to)
-
-    let (new_counter_low, _) = uint256_add(tokenId, Uint256(1, 0))
-    counter.write(new_counter_low)
+    _mint(to)
 
     return ()
 end
