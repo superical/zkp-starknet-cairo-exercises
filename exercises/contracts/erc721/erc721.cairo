@@ -305,19 +305,6 @@ func mintBuy{
 
     let (caller) = get_caller_address()
 
-    ######
-    ## The following assertion is quite redundant and it's only here to fulfil the requirement
-    ######
-    let (local buyer_token_bal) = Erc20.balanceOf(contract_address=erc20_token, account=caller)
-    let (is_enough_token) = uint256_le(token_price, buyer_token_bal)
-
-    with_attr error_message("Not enough money to mint"):
-        assert_not_zero(is_enough_token)
-    end
-    ######
-    ## End of unnecessary assertion
-    ######
-
     let (this_address) = get_contract_address()
 
     Erc20.transferFrom(
