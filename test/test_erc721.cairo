@@ -100,13 +100,18 @@ func test_burn_mint{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
 
     ## Call as admin erc721 and set burn address
     %{stop_prank_callable = start_prank(ids.MINT_ADMIN, ids.contract_address)%}       
-    IERC721.setErc20_pay(contract_address=contract_address, address = contract_address_erc20)        
+    IERC721.setErc20_pay(contract_address=contract_address, address = contract_address_erc20, price = Uint256(2500,0))        
     %{ stop_prank_callable() %}      
 
     ## Call as admin erc20 and send some tokens
     %{stop_prank_callable = start_prank(ids.MINT_ADMIN, ids.contract_address_erc20)%}   
     Erc20.transfer(contract_address=contract_address_erc20, recipient = TEST_ACC2, amount = Uint256(2500,0))          
     %{ stop_prank_callable() %}  
+
+    ## Approve erc20 by TEST_ACC2 for erc721 contract
+    %{stop_prank_callable = start_prank(ids.TEST_ACC2, ids.contract_address_erc20)%}   
+    Erc20.approve(contract_address=contract_address_erc20, spender=contract_address, amount=Uint256(2500,0))
+    %{ stop_prank_callable() %} 
 
     ## Call mintBuy as non-owner
     %{stop_prank_callable = start_prank(ids.TEST_ACC2, ids.contract_address)%}   
