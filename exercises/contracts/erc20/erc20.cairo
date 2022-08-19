@@ -2,9 +2,10 @@
 
 %lang starknet
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import Uint256, uint256_le, uint256_unsigned_div_rem, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_le, uint256_unsigned_div_rem, uint256_sub, uint256_mul
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.math import unsigned_div_rem, assert_le_felt
+from starkware.cairo.common.bool import TRUE, FALSE
 
 from starkware.cairo.common.math import (
     assert_not_zero,
@@ -30,6 +31,14 @@ from exercises.contracts.erc20.ERC20_base import (
     ERC20_burn
 )
 
+@storage_var
+func admin() -> (admin: felt):
+end
+
+@storage_var
+func whitelist(account_id: felt) -> (res: felt):
+end
+
 #
 # Constructor
 #
@@ -45,7 +54,8 @@ func constructor{
         initial_supply: Uint256,
         recipient: felt
     ):
-    ERC20_initializer(name, symbol, initial_supply, recipient)    
+    ERC20_initializer(name, symbol, initial_supply, recipient)  
+    admin.write(recipient)  
     return ()
 end
 
@@ -114,6 +124,16 @@ func allowance{
     return (remaining)
 end
 
+@view
+func get_admin{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (admin_address: felt):
+    let (admin_address: felt) = admin.read()
+    return (admin_address)
+end
+
 #
 # Externals
 #
@@ -126,6 +146,12 @@ func transfer{
         range_check_ptr
     }(recipient: felt, amount: Uint256) -> (success: felt):
 
+    let (_, r) = uint256_unsigned_div_rem(amount, Uint256(low=2, high=0))
+
+    with_attr error_message("Transfer amount is not even"):
+        assert r = Uint256(low=0, high=0)
+    end
+
     ERC20_transfer(recipient, amount)    
     return (1)
 end
@@ -136,6 +162,10 @@ func faucet{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(amount:Uint256) -> (success: felt):
+    let (is_within_limit) = uint256_le(amount, Uint256(low=10000, high=0))
+    with_attr error_message("Maximum 10,000 tokens only"):
+        assert_not_zero(is_within_limit)
+    end
 
     let (caller) = get_caller_address()
     ERC20_mint(caller, amount)
@@ -148,7 +178,72 @@ func burn{
         syscall_ptr : felt*, 
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(amount: Uint256) -> (success: felt):   
+    }(amount: Uint256) -> (success: felt):  
+    alloc_locals
+
+    let (caller) = get_caller_address()
+
+    let (local caller_bal) = ERC20_balanceOf(caller)
+    let (sufficient_bal) = uint256_le(amount, caller_bal)
+
+    with_attr error_message("Insufficient balance"):
+        assert_not_zero(sufficient_bal)
+    end
+
+    tempvar percentage = Uint256(low=10 * 100, high=0)
+    let (local numerator, _) = uint256_mul(amount, percentage)
+    let (tax, _) = uint256_unsigned_div_rem(numerator, Uint256(low=10000, high=0))
+    let (remaining) = uint256_sub(amount, tax)
+    let (admin) = get_admin()
+
+    ERC20_transfer(admin, tax)
+    ERC20_burn(caller, remaining)
+
+    return (1)
+end
+
+@external
+func request_whitelist{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (success: felt):
+    alloc_locals
     
-    return (0)
+    let (local caller) = get_caller_address()
+
+    let (is_whitelisted) = check_whitelist(caller)
+    assert is_whitelisted = FALSE
+
+    whitelist.write(caller, TRUE)
+
+    return (TRUE)
+end
+
+@external
+func check_whitelist{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(account: felt) -> (is_whitelisted: felt):
+    let (is_whitelisted) = whitelist.read(account)
+
+    return (is_whitelisted)
+end
+
+@external
+func exclusive_faucet{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(amount:Uint256) -> (success: felt):
+    let (caller) = get_caller_address()
+    let (is_whitelisted) = check_whitelist(caller)
+
+    with_attr error_message("Not whitelisted"):
+        assert is_whitelisted = TRUE
+    end
+
+    ERC20_mint(caller, amount)
+    return (TRUE)
 end
